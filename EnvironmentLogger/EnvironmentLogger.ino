@@ -1,7 +1,9 @@
 // Date and time functions using a DS3231 RTC connected via I2C and Wire lib
-
-
-
+//  Hardware component
+//  RTC DS3221
+//  BME280
+//  Micro SD card IF
+//  16x2 LCD temporary, will be taken place by OELD 128x64
 
 #include <Wire.h>
 #include <SPI.h>
@@ -31,12 +33,12 @@ RTC_DS3231 rtc;
 Adafruit_BME280 bme;
 #define SEALEVELPRESSURE_HPA (1013.25)
 
-
 char daysOfTheWeek[7][12] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
 unsigned long delayTime = 60000;
 unsigned long Temp, Humid, Press, Alt;
 unsigned long Temp_o, Humid_o, Press_o, Alt_o;
+char filename;
 
 byte UpArrow[8] = {
   0b00000,
@@ -66,9 +68,6 @@ void setup () {
 
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
 
   // I2C setup
   Wire.begin();
@@ -145,73 +144,116 @@ void setup () {
 
 void loop () {
   lcd.clear();
-  lcd.home();
 
   DateTime now = rtc.now();
 
-  lcd.print(now.month(), DEC);
-  lcd.print('/');
-  lcd.print(now.day(), DEC);
-
-  lcd.print(' ');
+/*
   lcd.print(now.hour(), DEC);
   lcd.print(':');
   lcd.print(now.minute(), DEC);
-  lcd.print("(");
-  lcd.print(daysOfTheWeek[now.dayOfTheWeek()]);
-  lcd.print(")");
+*/
 
+  Temp = bme.readTemperature();
+  Humid = bme.readHumidity();
+  Press = bme.readPressure() / 100.0F;
+  bme.readAltitude(SEALEVELPRESSURE_HPA);
 
+  serialprt(); //write serial console
+  csvout(); //write sd card
+ // lcdprt(); //write 16x2 LCD
+
+  if (Temp > Temp_o) {
+    lcd.print(Temp); lcd.print("*C "); lcd.write(byte(0)); lcd.print(Temp - Temp_o);lcd.print(" ");
+    Temp_o = Temp;
+  }
+  else if (Temp < Temp_o) {
+    lcd.print(Temp); lcd.print("*C "); lcd.write((byte)1); lcd.print(Temp_o - Temp);lcd.print(" ");
+    Temp_o = Temp;
+  }
+  else {
+    lcd.print(Temp);lcd.print("*C ");lcd.print(" ");Temp_o = Temp;
+  }
+
+  if (Humid > Humid_o) {
+    lcd.print(Humid); lcd.print("%"); lcd.write(byte(0)); lcd.print(Humid - Humid_o);
+    Humid_o = Humid;
+  }
+  else if (Humid < Humid_o) {
+    lcd.print(Humid); lcd.print("%"); lcd.write((byte)1); lcd.print(Humid_o - Humid);
+    Humid_o = Humid;
+  }
+  else {
+    lcd.print(Humid);
+    lcd.print("%");
+    Humid_o = Humid;
+  }
+
+  lcd.setCursor(0, 1);
+
+  if (Press > Press_o) {
+    lcd.print(Press); lcd.print("hPa "); lcd.write(byte(0)); lcd.print(Press - Press_o);
+    Press_o = Press;
+  }
+  else if (Press < Press_o) {
+    lcd.print(Press); lcd.print("hPa "); lcd.write((byte)1); lcd.print(Press_o - Press);
+    Press_o = Press;
+  }
+  else {
+    lcd.print(Press);
+    lcd.print("hPa ");
+    Press_o = Press;
+  }
+
+  delay(delayTime);
+}
+
+void csvout() {
+  
+  File datafile = SD.open("data.log",FILE_WRITE);
+  if (datafile) {
+    csvout();
+  }
+
+  DateTime now = rtc.now();
+
+  datafile.print(now.year());
+  datafile.print('/');
+  datafile.print(now.month());
+  datafile.print('/');
+  datafile.print(now.day());
+  datafile.print(",");
+  datafile.print(now.hour());
+  datafile.print(':');
+  datafile.print(now.minute());
+  datafile.print(':');
+  datafile.print(now.second());
+  datafile.print(",");
+  datafile.print(Temp);
+  datafile.print(",");
+  datafile.print(Humid);
+  datafile.print(",");
+  datafile.print(Press);
+  datafile.print(",");
+  datafile.print(Alt);
+  datafile.println();
+  datafile.close();
+}
+
+void serialprt() {
+
+  DateTime now = rtc.now();
+  
   Serial.print(now.year(), DEC);
-
   Serial.print('/');
   Serial.print(now.month(), DEC);
   Serial.print('/');
   Serial.print(now.day(), DEC);
-  Serial.print(" (");
-  Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
-  Serial.print(") ");
+  Serial.print(",");
   Serial.print(now.hour(), DEC);
   Serial.print(':');
   Serial.print(now.minute(), DEC);
   Serial.print(':');
   Serial.print(now.second(), DEC);
-
-  getValues(Temp, Humid, Press, Alt);
-
-  lcd.clear();
-
-  if (Temp >= Temp_o) {
-    lcd.setCursor(0, 1);
-    lcd.print("T="); lcd.print(Temp); lcd.print(" "); lcd.write(byte(0)); lcd.print(Temp - Temp_o);
-    Temp_o = Temp;
-  }
-  else {
-    lcd.setCursor(0, 1);
-    lcd.print("T="); lcd.print(Temp); lcd.print(" "); lcd.write((byte)1); lcd.print(Temp_o - Temp);
-    Temp_o = Temp;
-  }
-
-  if (Press >= Press_o) {
-    lcd.setCursor(0, 0);
-    lcd.print("P="); lcd.print(Press); lcd.print(" "); lcd.write(byte(0)); lcd.print(Press - Press_o);
-    Press_o = Press;
-  }
-  else {
-    lcd.setCursor(0, 0);
-    lcd.print("P="); lcd.print(Press); lcd.print(" "); lcd.write((byte)1); lcd.print(Press_o - Press);
-    Press_o = Press;
-  }
-
-
-  delay(delayTime);
-}
-
-void getValues(long Temp, long Humid, long Press, long Alt) {
-  Temp = bme.readTemperature();
-  Humid = bme.readHumidity();
-  Press = bme.readPressure() / 100.0F;
-  bme.readAltitude(SEALEVELPRESSURE_HPA);
   Serial.print(",");
   Serial.print(Temp);
   Serial.print(",");
@@ -221,29 +263,5 @@ void getValues(long Temp, long Humid, long Press, long Alt) {
   Serial.print(",");
   Serial.print(Alt);
   Serial.println();
-}
-
-void printValues() {
-  lcd.setCursor(0, 1);
-  lcd.print("T= ");
-  lcd.print(bme.readTemperature());
-  //    lcd.println(" *C");
-
-  //    lcd.setCursor(0, 1);
-  lcd.print(" H= ");
-  lcd.print(bme.readHumidity());
-  //    lcd.println(" %");
-
-  delay(delayTime);
-
-  lcd.setCursor(0, 1);
-  lcd.print("P= ");
-  lcd.print(bme.readPressure() / 100.0F);
-  //    lcd.println(" hPa");
-
-  //    lcd.setCursor(0, 1);
-  lcd.print("A= ");
-  lcd.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
-  //    lcd.println(" m");
 }
 
