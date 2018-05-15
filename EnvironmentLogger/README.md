@@ -1,1 +1,1 @@
-This is ongoing project to measure barometic sensor and SD card data logger. 
+This is ongoing project to measure the values of temparature, humidity, barometic pressures values and stored all of them into SD card. 
