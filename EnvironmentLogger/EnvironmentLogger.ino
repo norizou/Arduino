@@ -75,6 +75,7 @@ void setup () {
   // I2C LCD setup
   Serial.println("Devices init ");
   Serial.println("Init LCD ");
+
   lcd.begin();
   lcd.clear();
   lcd.home();
@@ -208,7 +209,7 @@ void loop () {
 }
 
 void csvout() {
-  
+
   File datafile = SD.open("data.log",FILE_WRITE);
   if (datafile) {
     csvout();
@@ -242,7 +243,7 @@ void csvout() {
 void serialprt() {
 
   DateTime now = rtc.now();
-  
+
   Serial.print(now.year(), DEC);
   Serial.print('/');
   Serial.print(now.month(), DEC);
@@ -264,4 +265,3 @@ void serialprt() {
   Serial.print(Alt);
   Serial.println();
 }
-
