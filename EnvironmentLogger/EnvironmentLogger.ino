@@ -68,10 +68,8 @@ void setup () {
 
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
-
   // I2C setup
   Wire.begin();
-
   // I2C LCD setup
   Serial.println("Devices init ");
   Serial.println("Init LCD ");
@@ -88,7 +86,7 @@ void setup () {
 
   //SD card setup
   Serial.println("Init SD card ");
-  lcd.print(F("Init SD card "));
+  lcd.print("Init SD card ");
 
   if (!SD.begin(10)) {
     Serial.println("Init failed!");
@@ -97,20 +95,19 @@ void setup () {
   }
   Serial.println("SD done ");
   lcd.setCursor(0, 1);
-  lcd.print(F("SD done "));
+  lcd.print("SD done ");
 
   delay(500); // wait for sensor stablity
 
   //RTC card setup
   if (! rtc.begin()) {
-    Serial.println(F("No RTC "));
-    lcd.println(F("No RTC"));
+    Serial.println("No RTC ");
+    lcd.println("No RTC");
     while (1);
   }
   Serial.println("RTC done.");
   lcd.setCursor(0, 1);
   lcd.println("RTC done ");
-
 
   if (rtc.lostPower()) {
     Serial.println("RTC lost power, lets set the time!");
@@ -124,12 +121,10 @@ void setup () {
   delay(500); // wait for sensor stablity
 
   //BME setup
-
   if (!bme.begin(0x76)) {
     Serial.println("No BME280!!");
-
     lcd.setCursor(0, 1);
-    lcd.print(F(((("No BME280!!"));
+    lcd.print("No BME280!!");
     while (1);
   }
   Serial.println("BME done.");
@@ -138,22 +133,21 @@ void setup () {
 
   delay(500);
   lcd.setCursor(0, 1);
-  lcd.print("F"All devices ok.");
+  lcd.print("All devices ok.");
   delay(3000);
 
 }
 
 void loop () {
   lcd.clear();
-
   DateTime now = rtc.now();
-
 /*
   lcd.print(now.hour(), DEC);
   lcd.print(':');
   lcd.print(Fnow.minute(), DEC);
 */
 
+// Read values from BME280 sensor
   Temp = bme.readTemperature();
   Humid = bme.readHumidity();
   Press = bme.readPressure() / 100.0F;
@@ -163,79 +157,74 @@ void loop () {
   csvout(); //write sd card
  // lcdprt(); //write 16x2 LCD
 
+for (int i=0;i++;i<=10){
   if (Temp > Temp_o) {
-    lcd.print(F(Temp)); lcd.print(F("*C ")); lcd.write(byte(0)); lcd.print(F(Temp - Temp_o));lcd.print(F(" "));
-    Temp_o = Temp;
+    lcd.print(Temp); lcd.print(F("*C ")); lcd.write(byte(0)); lcd.print(Temp - Temp_o);lcd.print(F(" "));
   }
   else if (Temp < Temp_o) {
-    lcd.print(F(Temp)); lcd.print(F("*C ")); lcd.write((byte)1); lcd.print(F(Temp_o - Temp));lcd.print(F(" "));
-    Temp_o = Temp;
+    lcd.print(Temp); lcd.print(F("*C ")); lcd.write((byte)1); lcd.print(Temp_o - Temp);lcd.print(F(" "));
   }
   else {
-    lcd.print(F(Temp));lcd.print(F("*C "));lcd.print(F(" "));Temp_o = Temp;
+    lcd.print(Temp);lcd.print(F("*C "));lcd.print(F(" "));
   }
 
   if (Humid > Humid_o) {
-    lcd.print(F(Humid)); lcd.print(F("%")); lcd.write(byte(0)); lcd.print(F(Humid - Humid_o));
-    Humid_o = Humid;
+    lcd.print(Humid); lcd.print(F("%")); lcd.write(byte(0)); lcd.print(Humid - Humid_o);
   }
   else if (Humid < Humid_o) {
-    lcd.print(F(Humid)); lcd.print(F("%")); lcd.write((byte)1); lcd.print(F(Humid_o - Humid));
-    Humid_o = Humid;
+    lcd.print(Humid); lcd.print(F("%")); lcd.write((byte)1); lcd.print(Humid_o - Humid);
   }
   else {
-    lcd.print(F(Humid));
-    lcd.print(F("%"));
-    Humid_o = Humid;
+    lcd.print(Humid);lcd.print(F("%"));
   }
-
+  delay(3000);
   lcd.setCursor(0, 1);
 
   if (Press > Press_o) {
-    lcd.print(F(Press)); lcd.print(F(hPa ")); lcd.write(byte(0)); lcd.print(F(Press - Press_o));
-    Press_o = Press;
+    lcd.print(Press); lcd.print("hPa "); lcd.write(byte(0)); lcd.print(Press - Press_o);
   }
   else if (Press < Press_o) {
-    lcd.print(F(Press)); lcd.print(F("hPa ")); lcd.write((byte)1); lcd.print(F(Press_o - Press));
-    Press_o = Press;
+    lcd.print(Press); lcd.print("hPa "); lcd.write((byte)1); lcd.print(Press_o - Press);
   }
   else {
-    lcd.print(F(Press));
-    lcd.print(F("hPa "));
-    Press_o = Press;
+    lcd.print(Press);lcd.print("hPa ");
   }
-
-  delay(delayTime);
+  delay(3000);
+}
+  Temp_o = Temp;
+  Humid_o = Humid;
+  Press_o = Press;
 }
 
 void csvout() {
 
   File datafile = SD.open("data.log",FILE_WRITE);
-  if (datafile) {
-    csvout();
+
+  if (!datafile) {
+    exit(-1);
   }
 
   DateTime now = rtc.now();
 
-  datafile.print(F(now.year()));
-  datafile.print(F()'/'));
-  datafile.print(F(now.month());
-  datafile.print(F('/'));
-  datafile.print(F(now.day()));
-  datafile.print(F(","));
-  datafile.print(F(now.hour()));
-  datafile.print(F(':'));
-  datafile.print(F(now.minute()));
-  datafile.print(F(':'));
-  datafile.print(F(now.second()));
-  datafile.print(F(","));
-  datafile.print(F(Temp));
-  datafile.print(F(","));
-  datafile.print(F(Humid));
-  datafile.print(F(","));
-  datafile.print(F(FPress));
-  datafile.print(F(","));
-  datafile.print(F(Alt));
+  datafile.print( now.year());
+  datafile.print( '/');
+  datafile.print( now.month());
+  datafile.print( '/');
+  datafile.print( now.day());
+  datafile.print( ",");
+  datafile.print( now.hour());
+  datafile.print( ':');
+  datafile.print( now.minute());
+  datafile.print( ':');
+  datafile.print( now.second());
+  datafile.print( ",");
+  datafile.print( Temp);
+  datafile.print( ",");
+  datafile.print( Humid);
+  datafile.print( ",");
+  datafile.print( Press);
+  datafile.print( ",");
+  datafile.print( Alt);
   datafile.println();
   datafile.close();
 }
@@ -244,25 +233,25 @@ void serialprt() {
 
   DateTime now = rtc.now();
 
-  Serial.print(F(now.year(), DEC));
-  Serial.print(F('/');
-  Serial.print(F(now.month(), DEC));
-  Serial.print(F('/'));
-  Serial.print(F(now.day(), DEC));
-  Serial.print(F(","));
-  Serial.print(F(now.hour(), DEC));
-  Serial.print(F(':'));
-  Serial.print(F(now.minute(), DEC));
-  Serial.print(F(':'));
-  Serial.print(F(now.second(), DEC));
-  Serial.print(F(","));
-  Serial.print(F(Temp));
-  Serial.print(F(","));
-  Serial.print(F(Humid));
-  Serial.print(F(","));
-  Serial.print(F(FPress));
-  Serial.print(F(","));
-  Serial.print(F(Alt));
+  Serial.print(now.year(), DEC);
+  Serial.print('/');
+  Serial.print( now.month(), DEC);
+  Serial.print( '/');
+  Serial.print( now.day(), DEC);
+  Serial.print( ",");
+  Serial.print( now.hour(), DEC);
+  Serial.print( ':');
+  Serial.print( now.minute(), DEC);
+  Serial.print( ':');
+  Serial.print( now.second(), DEC);
+  Serial.print( ",");
+  Serial.print( Temp);
+  Serial.print( ",");
+  Serial.print( Humid);
+  Serial.print( ",");
+  Serial.print( Press);
+  Serial.print( ",");
+  Serial.print( Alt);
   Serial.println();
-  Serial.close();
+
 }
