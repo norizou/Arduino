@@ -147,17 +147,17 @@ void loop () {
   lcd.print(Fnow.minute(), DEC);
 */
 
-// Read values from BME280 sensor
+  // Read values from BME280 sensor
   Temp = bme.readTemperature();
   Humid = bme.readHumidity();
   Press = bme.readPressure() / 100.0F;
   bme.readAltitude(SEALEVELPRESSURE_HPA);
 
+  // lcdprt(); //write 16x2 LCD
   serialprt(); //write serial console
   csvout(); //write sd card
- // lcdprt(); //write 16x2 LCD
 
-for (int i=0;i++;i<=10){
+for (int i=1;i<=20;i++){
   if (Temp > Temp_o) {
     lcd.print(Temp); lcd.print(F("*C ")); lcd.write(byte(0)); lcd.print(Temp - Temp_o);lcd.print(F(" "));
   }
@@ -177,9 +177,8 @@ for (int i=0;i++;i<=10){
   else {
     lcd.print(Humid);lcd.print(F("%"));
   }
-  delay(3000);
-  lcd.setCursor(0, 1);
 
+  lcd.setCursor(0, 1);
   if (Press > Press_o) {
     lcd.print(Press); lcd.print("hPa "); lcd.write(byte(0)); lcd.print(Press - Press_o);
   }
@@ -189,6 +188,11 @@ for (int i=0;i++;i<=10){
   else {
     lcd.print(Press);lcd.print("hPa ");
   }
+  lcd.setCursor(11,1);
+  lcd.print( now.hour());
+  lcd.print( ':');
+  lcd.print( now.minute());
+  lcd.home();
   delay(3000);
 }
   Temp_o = Temp;
@@ -199,10 +203,6 @@ for (int i=0;i++;i<=10){
 void csvout() {
 
   File datafile = SD.open("data.log",FILE_WRITE);
-
-  if (!datafile) {
-    exit(-1);
-  }
 
   DateTime now = rtc.now();
 
