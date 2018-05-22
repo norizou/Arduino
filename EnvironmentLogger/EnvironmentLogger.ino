@@ -1,3 +1,7 @@
+// Environment Data Logger
+// Purpose:: learn electronic circuit and component, Arduino software
+// every 1 min, capture data and store SD card.
+
 // Date and time functions using a DS3231 RTC connected via I2C and Wire lib
 //  Hardware component
 //  RTC DS3221
@@ -157,7 +161,6 @@ void loop () {
   serialprt(); //write serial console
   csvout(); //write sd card
 
-for (int i=1;i<=20;i++){
   if (Temp > Temp_o) {
     lcd.print(Temp); lcd.print(F("*C ")); lcd.write(byte(0)); lcd.print(Temp - Temp_o);lcd.print(F(" "));
   }
@@ -168,6 +171,7 @@ for (int i=1;i<=20;i++){
     lcd.print(Temp);lcd.print(F("*C "));lcd.print(F(" "));
   }
 
+  lcd.setCursor(11,0);
   if (Humid > Humid_o) {
     lcd.print(Humid); lcd.print(F("%")); lcd.write(byte(0)); lcd.print(Humid - Humid_o);
   }
@@ -193,8 +197,10 @@ for (int i=1;i<=20;i++){
   lcd.print( ':');
   lcd.print( now.minute());
   lcd.home();
-  delay(3000);
-}
+
+//every 10 mins 
+  delay(600000);
+
   Temp_o = Temp;
   Humid_o = Humid;
   Press_o = Press;

@@ -5,7 +5,7 @@
   Demonstrates how to draw a fitting box around a text.
 
   List of all U8g2 fonts: https://github.com/olikraus/u8g2/wiki/fntlistall
-      
+
 */
 #include <Adafruit_SSD1306.h>
 #include <U8g2_for_Adafruit_GFX.h>
@@ -21,7 +21,7 @@ void setup() {
   u8g2_for_adafruit_gfx.begin(display);                 // connect u8g2 procedures to Adafruit GFX
 }
 
-void loop() {  
+void loop() {
   const char s[] = "gfx LCD";
   /* width and height of the text */
   int16_t height;
@@ -29,7 +29,7 @@ void loop() {
   /* desired position of the text */
   int16_t x = 4;
   int16_t y = 25;
-  display.clearDisplay();                               // clear the graphcis buffer  
+  display.clearDisplay();                               // clear the graphcis buffer
   u8g2_for_adafruit_gfx.setFontMode(1);                 // use u8g2 transparent mode (this is default)
   u8g2_for_adafruit_gfx.setFontDirection(0);            // left to right (this is default)
   u8g2_for_adafruit_gfx.setForegroundColor(WHITE);      // apply Adafruit GFX color
@@ -43,4 +43,4 @@ void loop() {
   display.drawRect(x, y-u8g2_for_adafruit_gfx.getFontAscent(), width, height, WHITE);
   display.display();                                    // make everything visible
   delay(2000);
-} 
+}
